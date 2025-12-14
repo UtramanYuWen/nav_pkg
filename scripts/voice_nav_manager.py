@@ -170,26 +170,6 @@ class VoiceNavManager:
             tree = ET.parse(waypoints_file)
             root = tree.getroot()
             
-            # 读取map.yaml以获得坐标转换参数
-            map_dir = waypoints_file.parent
-            yaml_file = map_dir / 'map.yaml'
-            
-            resolution = 0.05  # 默认分辨率
-            origin_x = -10.0   # 默认原点
-            origin_y = -10.0
-            
-            if yaml_file.exists():
-                try:
-                    import yaml
-                    with open(yaml_file, 'r') as f:
-                        map_config = yaml.safe_load(f)
-                    resolution = map_config.get('resolution', 0.05)
-                    origin = map_config.get('origin', [-10.0, -10.0, 0.0])
-                    origin_x = origin[0]
-                    origin_y = origin[1]
-                except Exception as e:
-                    rospy.logwarn(f"⚠️  无法读取map.yaml: {e}")
-            
             rooms = {}
             
             for waypoint in root.findall('Waypoint'):
@@ -199,20 +179,17 @@ class VoiceNavManager:
                 
                 if name_elem is not None and pos_x_elem is not None and pos_y_elem is not None:
                     room_name = name_elem.text.lower().strip()
-                    # 像素坐标转米制坐标: world_coord = origin + pixel_coord * resolution
-                    pixel_x = float(pos_x_elem.text)
-                    pixel_y = float(pos_y_elem.text)
-                    
-                    meter_x = origin_x + pixel_x * resolution
-                    meter_y = origin_y + pixel_y * resolution
+                    # 注意：Pos_x和Pos_y已经是世界坐标（米），不需要再做像素转换
+                    world_x = float(pos_x_elem.text)
+                    world_y = float(pos_y_elem.text)
                     
                     rooms[room_name] = {
-                        'x': meter_x,
-                        'y': meter_y,
+                        'x': world_x,
+                        'y': world_y,
                         'z': 0.0
                     }
                     
-                    rospy.logdebug(f"房间坐标: {room_name} -> pixel({pixel_x}, {pixel_y}) -> meter({meter_x:.3f}, {meter_y:.3f})")
+                    rospy.logdebug(f"房间坐标: {room_name} -> ({world_x:.3f}, {world_y:.3f})")
             
             return rooms
         
