@@ -222,7 +222,7 @@ class VoiceNavManager:
     
     def _load_map(self, map_path):
         """
-        加载指定的地图版本
+        加载指定的地图版本并动态重启map_server
         
         Args:
             map_path: 地图文件夹路径
@@ -241,13 +241,42 @@ class VoiceNavManager:
                     status_msg.data = f"map_loaded:{map_info['name']}"
                     self.status_pub.publish(status_msg)
                     
-                    # 发布地图的YAML文件路径供map_server使用
-                    # （这部分需要额外的ROS节点来加载地图）
+                    # 🔄 动态重载map_server以加载新的地图YAML文件
+                    self._reload_map_server(map_info['yaml_file'])
                     
                     break
         
         except Exception as e:
             rospy.logerr(f"❌ 加载地图失败: {e}")
+    
+    def _reload_map_server(self, yaml_file_path):
+        """
+        动态重启map_server以加载新的地图文件
+        这样就能实现从clip_sam生成的最新地图中加载
+        
+        Args:
+            yaml_file_path: 地图YAML文件的完整路径
+        """
+        import subprocess
+        try:
+            rospy.loginfo(f"🔄 正在重载地图服务器...")
+            rospy.loginfo(f"   地图文件: {yaml_file_path}")
+            
+            # 杀死现有的map_server进程
+            try:
+                subprocess.run(['rosnode', 'kill', '/map_server'], timeout=5)
+                rospy.sleep(1)  # 等待进程完全结束
+            except Exception as e:
+                rospy.logwarn(f"   无法杀死旧map_server: {e}")
+            
+            # 启动新的map_server，加载新的地图
+            subprocess.Popen(['rosrun', 'map_server', 'map_server', yaml_file_path])
+            rospy.sleep(2)  # 等待新服务器启动
+            
+            rospy.loginfo(f"✓ 地图服务器已重载，加载了: {yaml_file_path}")
+            
+        except Exception as e:
+            rospy.logerr(f"❌ 重载地图服务器失败: {e}")
     
     def on_room_extracted(self, msg):
         """

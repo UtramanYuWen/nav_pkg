@@ -139,7 +139,29 @@ class MapSwitcher:
         except Exception as e:
             print(f"⚠️  ROS 节点离线，无法通过 ROS 参数更新: {e}")
         
-        # 推荐手动修改配置文件
+        # 🔄 动态重载map_server
+        import subprocess
+        import time
+        yaml_file = map_path / "map.yaml"
+        try:
+            print(f"\n🔄 正在重载地图服务器...")
+            
+            # 杀死现有的map_server进程
+            try:
+                subprocess.run(['rosnode', 'kill', '/map_server'], timeout=5, capture_output=True)
+                time.sleep(1)
+            except:
+                pass
+            
+            # 启动新的map_server，加载新的地图
+            subprocess.Popen(['rosrun', 'map_server', 'map_server', str(yaml_file)])
+            time.sleep(2)
+            
+            print(f"✓ 地图服务器已重载")
+            
+        except Exception as e:
+            print(f"⚠️  无法动态重载map_server: {e}")
+        
         print(f"\n📍 已切换地图到: {map_name}")
         print(f"   完整路径: {map_path}")
         
@@ -150,10 +172,7 @@ class MapSwitcher:
             for room in rooms:
                 print(f"   • {room}")
         
-        print(f"\n➡️  下一步:")
-        print(f"   1. 编辑 config/voice_nav_params.yaml")
-        print(f"   2. 改为: semantic_maps_path: \"{map_path}\"")
-        print(f"   3. 运行: roslaunch nav_pkg voice_nav_simple.launch")
+        print(f"\n✓ 地图已切换!")
         
         return True
     

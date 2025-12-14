@@ -11,9 +11,13 @@
     </node>
 
     <!-- ========================================
-         【地图服务器】
+         【地图服务器 - 从clip_sam语义地图加载】
          ======================================== -->
-    <node pkg="map_server" type="map_server" name="map_server" args="$(find wpr_simulation)/maps/map.yaml">
+    <!-- 注意: 实际的地图文件由voice_nav_manager.py动态加载 -->
+    <!-- 这里使用一个占位符，等待voice_nav_manager启动后再加载真实地图 -->
+    <node pkg="map_server" type="map_server" name="map_server" 
+          args="$(find wpr_simulation)/maps/map.yaml" respawn="true" respawn_delay="5">
+        <!-- 地图服务器会被voice_nav_manager动态重启，加载最新的clip_sam地图 -->
     </node>
 
     <!-- ========================================
