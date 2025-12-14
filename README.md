@@ -72,13 +72,43 @@ rosrun nav_pkg switch_map.py map_20250213_120000
 
 ## 🔧 安装和配置
 
-### 系统依赖
-```bash
-# ROS导航依赖
-sudo apt-get install ros-noetic-move-base ros-noetic-dwa-local-planner
+### 前置依赖
 
-# 讯飞SDK依赖 (xfyun_waterplus包已包含)
+本项目依赖以下外部包，需要提前安装：
+
+```bash
+# 1. clip_sam_semantic_mapping (用于语义地图生成)
+cd ~/catkin_ws/src
+git clone https://github.com/UtramanYuWen/clip_sam_semantic_mapping.git
 cd ~/catkin_ws && catkin_make
+
+# 2. xfyun_waterplus (用于讯飞语音识别)
+cd ~/catkin_ws/src
+git clone https://github.com/6-robot/xfyun_waterplus.git
+cd xfyun_waterplus && git checkout noetic  # 切换到noetic分支
+```
+
+### 系统依赖
+
+```bash
+# 1. ROS导航依赖
+sudo apt-get install -y ros-noetic-move-base ros-noetic-dwa-local-planner
+
+# 2. 讯飞IAT语音识别依赖 (xfyun_waterplus需要)
+sudo apt-get install -y ros-noetic-audio-common libasound2 ros-noetic-sound-play
+
+# 3. map_server和其他导航工具
+sudo apt-get install -y ros-noetic-map-server ros-noetic-amcl ros-noetic-navigation
+
+# 4. Python依赖
+pip install numpy opencv-python
+```
+
+### 编译
+
+```bash
+cd ~/catkin_ws
+catkin_make
 ```
 
 ### 讯飞凭证配置 (可选)

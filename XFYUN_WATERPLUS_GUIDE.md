@@ -28,31 +28,66 @@ voice_nav_manager.py (Python)
 
 ## 依赖说明
 
-### 1. 项目依赖 (package.xml)
+### 1. 系统级依赖 ⚠️ 必须先安装
+
+xfyun_waterplus包需要以下系统依赖，**使用本项目前必须先安装**：
+
+```bash
+# 音频处理库
+sudo apt-get install -y ros-noetic-audio-common libasound2 ros-noetic-sound-play
+
+# 其他必要工具
+sudo apt-get install -y portaudio19-dev  # 音频输入输出库
+```
+
+### 2. 项目依赖 (package.xml)
+
+本项目在 `package.xml` 中声明了对 `xfyun_waterplus` 的依赖：
 
 ```xml
 <!-- 讯飞语音识别依赖 - 使用xfyun_waterplus包 -->
+<build_depend>xfyun_waterplus</build_depend>
 <exec_depend>xfyun_waterplus</exec_depend>
 ```
 
-### 2. xfyun_waterplus 包
+### 3. xfyun_waterplus 包获取
 
-位置: `/home/robot/catkin_ws/src/xfyun_waterplus`
-
-该包包含:
-- `iat_node` - 讯飞IAT C++可执行程序
-- 讯飞SDK库
-- 相关配置文件
-
-### 3. 编译要求
+xfyun_waterplus是由[北京六部工坊科技](http://www.6-robot.com)开发的开源包：
 
 ```bash
-# 第一次编译时需要编译xfyun_waterplus
+# 克隆xfyun_waterplus到你的catkin工作空间
+cd ~/catkin_ws/src
+git clone https://github.com/6-robot/xfyun_waterplus.git
+
+# 切换到noetic分支（如果需要）
+cd xfyun_waterplus
+git checkout noetic
+
+# 返回工作空间编译
+cd ~/catkin_ws
+catkin_make
+```
+
+**xfyun_waterplus包包含:**
+- `iat_node` - 讯飞IAT C++可执行程序
+- 讯飞SDK库（已预编译）
+- ROS集成代码和launch文件
+
+### 4. 完整编译步骤
+
+```bash
+# 1. 安装系统依赖（如果还未安装）
+sudo apt-get install -y ros-noetic-audio-common libasound2 ros-noetic-sound-play
+
+# 2. 确保xfyun_waterplus在工作空间中
+ls ~/catkin_ws/src/xfyun_waterplus/  # 应该能看到package.xml
+
+# 3. 编译整个工作空间
 cd ~/catkin_ws
 catkin_make
 
-# 编译完成后的二进制文件位置
-~/catkin_ws/devel/lib/xfyun_waterplus/iat_node
+# 4. 编译成功后应该能找到iat_node
+ls ~/catkin_ws/devel/lib/xfyun_waterplus/iat_node
 ```
 
 ---
