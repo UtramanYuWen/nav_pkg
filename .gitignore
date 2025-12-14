@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ROS
+build/
+devel/
+install/
+.catkin_tools/
+*.o
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*~
+\#*\#
+.\#*
+# 讯飞凭证和敏感信息
+.env
+.env.local
+xfyun_credentials.yaml
+config/xfyun_credentials.yaml
+
+# macOS
+.DS_Store
+
+# 编辑器临时文件
+*.sublime-workspace

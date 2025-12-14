@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 语音导航系统的完整启动文件
+       包括：Gazebo仿真 + 语音识别 + 导航
+       
+       启动方式: roslaunch nav_pkg voice_nav_complete.launch
+  -->
+
+  <!-- ========================================
+       【1. Gazebo仿真环境】
+       ======================================== -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find wpr_simulation)/worlds/robocup_home.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="recording" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- 生成仿真环境中的物体 -->
+  <node name="bed" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/bed.model -x 5.0 -y -3.9 -z 0 -Y 3.14159 -urdf -model bed" />
+  <node name="sofa" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/sofa.model -x -4.21 -y -0.6 -z 0 -Y -1.57 -urdf -model sofa" />
+  <node name="sofa_p1" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/sofa.model -x -2.07 -y -3.9 -z 0 -Y 1.57 -urdf -model sofa_p1" />
+  <node name="tea_table" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/tea_table.model -x -3.19 -y -2.2 -z 0 -Y 1.57 -urdf -model tea_table" />
+
+  <node name="bookshelft_p2" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/bookshelft.model -x -4.93 -y 1.3 -z 0 -Y 0 -urdf -model bookshelft_p2" />
+  <node name="bookshelft_p3" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/bookshelft.model -x -4.93 -y 2.85 -z 0 -Y 0 -urdf -model bookshelft_p3" />
+  <node name="kitchen_table" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/table.model -x -2.65 -y 2.19 -z 0 -Y -3.14 -urdf -model kitchen_table" />
+
+  <node name="cupboard_1" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/cupboard.model -x -1.3 -y 3.7 -z 0 -Y -1.57 -urdf -model cupboard_1" />
+  <node name="cupboard_p1" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/cupboard.model -x 2.68 -y -3.8 -z 0 -Y 1.57 -urdf -model cupboard_p1" />
+  <node name="cupboard_p2" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/cupboard.model -x 4.7 -y -0.7 -z 0 -Y -1.57 -urdf -model cupboard_p2" />
+
+  <node name="dinning_table_0" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/table.model -x 1.5 -y 1.5 -z 0 -Y 1.57 -urdf -model dinning_table_0" />
+  <node name="dinning_table_1" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/table.model -x 1.5 -y 2.0 -z 0 -Y 1.57 -urdf -model dinning_table_1" />
+  <node name="dinning_table_2" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/table.model -x 2.7 -y 1.5 -z 0 -Y 1.57 -urdf -model dinning_table_2" />
+  <node name="dinning_table_3" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/table.model -x 2.7 -y 2.0 -z 0 -Y 1.57 -urdf -model dinning_table_3" />
+
+  <node name="chair_0" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/chair.model -x 1.5 -y 1.2 -z 0 -Y 1.57 -urdf -model chair_0" />
+  <node name="chair_1" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/chair.model -x 1.5 -y 2.3 -z 0 -Y -1.57 -urdf -model chair_1" />
+  <node name="chair_2" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/chair.model -x 2.7 -y 1.2 -z 0 -Y 1.57 -urdf -model chair_2" />
+  <node name="chair_3" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/chair.model -x 2.7 -y 2.3 -z 0 -Y -1.57 -urdf -model chair_3" />
+
+  <!-- 生成机器人模型 -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find wpr_simulation)/models/wpb_home.model -urdf -x 0.0 -y -0.0 -model wpb_home" />
+
+  <!-- TF变换和状态发布 -->
+  <arg name="model" default="$(find wpr_simulation)/models/wpb_home.model"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+  <!-- 激光数据过滤 -->
+  <node pkg="wpr_simulation" type="lidar_filter" name="lidar_filter" />
+
+  <!-- 键盘控制节点 - 用于手动驾驶机器人 -->
+  <node pkg="wpr_simulation" 
+        type="keyboard_vel_ctrl" 
+        name="keyboard_vel_ctrl" 
+        output="screen"/>
+
+  <!-- ========================================
+       【2. 语音导航系统】
+       ======================================== -->
+  
+  <!-- 加载全局配置参数 -->
+  <rosparam file="$(find nav_pkg)/config/voice_nav_params.yaml" command="load" />
+
+  <!-- 讯飞IAT语音识别服务 -->
+  <node pkg="xfyun_waterplus" type="iat_node" name="xfyun_iat_node" output="screen">
+    <param name="cn" type="bool" value="true"/>
+  </node>
+
+  <!-- 简化导航节点（处理move_base_simple/goal并转换为cmd_vel） -->
+  <node pkg="nav_pkg" type="simple_navigation_node.py" name="simple_navigation" output="screen">
+    <param name="linear_speed" value="0.5"/>
+    <param name="angular_speed" value="1.0"/>
+    <param name="position_tolerance" value="0.3"/>
+    <param name="angle_tolerance" value="0.2"/>
+    <param name="max_navigation_time" value="60.0"/>
+  </node>
+
+  <!-- 语音识别桥接节点（转发讯飞IAT的识别结果） -->
+  <node pkg="nav_pkg" type="speech_recognition_node.py" name="speech_recognition_node" output="screen">
+  </node>
+
+  <!-- 语义房间词提取器 -->
+  <node pkg="nav_pkg" type="semantic_room_extractor.py" name="semantic_room_extractor" output="screen">
+  </node>
+
+  <!-- 语音导航管理器 -->
+  <node pkg="nav_pkg" type="voice_nav_manager.py" name="voice_nav_manager" output="screen">
+  </node>
+
+</launch>

@@ -1,0 +1,83 @@
+<launch>
+
+    <!-- 加载全局配置参数 -->
+    <rosparam file="$(find nav_pkg)/config/voice_nav_params.yaml" command="load" />
+
+    <!-- ========================================
+         【TF2 静态变换（建立坐标系关系）】
+         ======================================== -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="odom_to_map" 
+        args="0 0 0 0 0 0 1 map odom" >
+    </node>
+
+    <!-- ========================================
+         【地图服务器】
+         ======================================== -->
+    <node pkg="map_server" type="map_server" name="map_server" args="$(find wpr_simulation)/maps/map.yaml">
+    </node>
+
+    <!-- ========================================
+         【AMCL定位服务】
+         ======================================== -->
+    <node pkg="amcl" type="amcl" name="amcl" output="screen">
+        <param name="odom_frame_id" value="odom"/>
+        <param name="base_frame_id" value="base_link"/>
+        <param name="global_frame_id" value="map"/>
+        <param name="initial_pose_x" value="0.0"/>
+        <param name="initial_pose_y" value="0.0"/>
+        <param name="initial_pose_a" value="0.0"/>
+        <param name="tf_broadcast" value="true"/>
+        <!-- 禁用初始化检查，用于无激光雷达反馈的仿真环境 -->
+        <param name="always_transform_to_odom" value="true"/>
+        <param name="first_map_only" value="false"/>
+        <param name="max_particles" value="500"/>
+        <param name="min_particles" value="100"/>
+    </node>
+
+    <!-- ========================================
+         【Move_base导航栈】
+         ======================================== -->
+    <node pkg="move_base" type="move_base" name="move_base" output="screen">
+        <!-- 加载costmap配置 -->
+        <rosparam file="$(find nav_pkg)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find nav_pkg)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find nav_pkg)/config/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find nav_pkg)/config/local_costmap_params.yaml" command="load" />
+        
+        <!-- 规划器配置 -->
+        <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+        <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+        <rosparam file="$(find nav_pkg)/config/planner_params.yaml" command="load" />
+        
+        <!-- 其他参数 -->
+        <param name="planner_frequency" value="5.0" />
+        <param name="controller_frequency" value="10.0" />
+        <param name="footprint_padding" value="0.01" />
+        <param name="controller_patience" value="15.0" />
+        <param name="planner_patience" value="5.0" />
+    </node>
+
+    <!-- ========================================
+         【讯飞IAT语音识别服务】
+         ======================================== -->
+    <node pkg="xfyun_waterplus" type="iat_node" name="xfyun_iat_node" output="screen">
+        <param name="cn" type="bool" value="true"/>
+    </node>
+
+    <!-- ========================================
+         【语音导航系统】
+         ======================================== -->
+
+    <!-- 语音识别桥接节点（转发讯飞IAT的识别结果） -->
+    <node pkg="nav_pkg" type="speech_recognition_node.py" name="speech_recognition_node" output="screen">
+    </node>
+
+    <!-- 语义房间词提取器 -->
+    <node pkg="nav_pkg" type="semantic_room_extractor.py" name="semantic_room_extractor" output="screen">
+    </node>
+
+    <!-- 语音导航管理器 -->
+    <node pkg="nav_pkg" type="voice_nav_manager.py" name="voice_nav_manager" output="screen">
+    </node>
+
+</launch>

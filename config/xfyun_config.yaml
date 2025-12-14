@@ -1,0 +1,32 @@
+# 讯飞IAT语音识别配置文件
+# 从 https://www.xfyun.cn/ 申请应用获取凭证
+
+xfyun_waterplus:
+  # ⭐ 必配: 讯飞应用ID (从讯飞官网获取)
+  app_id: "${XFYUN_APP_ID}"
+  
+  # ⭐ 必配: 讯飞API密钥 (从讯飞官网获取)
+  api_key: "${XFYUN_API_KEY}"
+  
+  # 语言设置: zh_CN (中文), en_US (英文)
+  language: "zh_CN"
+  
+  # 采样率 (Hz): 16000 (推荐), 8000, 44100
+  sample_rate: 16000
+  
+  # 音频通道: 1 (单声道), 2 (立体声)
+  channels: 1
+  
+  # 应用域: iat (语音听写, 默认), asr (语音识别), poi (地名搜索)
+  domain: "iat"
+
+# 语音识别参数
+speech_recognition:
+  # 识别超时 (秒)
+  recognition_timeout: 10
+  
+  # 信心度阈值 (0-1): 高于此值才认为识别成功
+  confidence_threshold: 0.5
+  
+  # 显示日志等级: DEBUG, INFO, WARNING, ERROR
+  log_level: "INFO"
